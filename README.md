@@ -1,6 +1,6 @@
 # WRU
 
-Sending input pictures/files -> recieving + storing them -> processing them -> displaying meaningful output.
+Sending input pictures/files -> receiving + storing them -> processing them -> displaying meaningful output.
 
 READMEs of each section:<br />
 [Sending input pictures/files (field scout)](/field_scout/README.md)<br />
