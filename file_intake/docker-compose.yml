@@ -1,0 +1,36 @@
+version: "3.9"
+services:
+
+  minio:
+    image: docker.io/bitnami/minio:2024
+    container_name: 'minio'
+    ports:
+      - '9000:9000'
+      - '9001:9001'
+    volumes:
+      - '.:/data'
+    environment:
+      - MINIO_ROOT_USER=guest
+      - MINIO_ROOT_PASSWORD=guestguest
+      - MINIO_DEFAULT_BUCKETS=wru-bucket
+      # Send events to rabbitMQ:
+      - MINIO_NOTIFY_AMQP_ENABLE_PRIMARY=true
+      - MINIO_NOTIFY_AMQP_URL_PRIMARY=amqp://guest:guest@rabbitmq:5672
+      - MINIO_NOTIFY_AMQP_ROUTING_KEY_PRIMARY=wru-queue
+      - MINIO_NOTIFY_AMQP_EXCHANGE_PRIMARY=wru-exchange
+      - MINIO_NOTIFY_AMQP_EXCHANGE_TYPE_PRIMARY=direct
+      - MINIO_NOTIFY_AMQP_DURABLE_PRIMARY=on
+
+  rabbitmq:
+    image: rabbitmq:3.12.12-management-alpine
+    container_name: 'rabbitmq'
+    ports:
+        - 5672:5672
+        - 15672:15672
+    volumes:
+      - ./rabbitmq/init/rabbitmq.conf:/etc/rabbitmq/rabbitmq.conf:ro
+      - ./rabbitmq/init/definitions.json:/etc/rabbitmq/definitions.json:ro
+
+networks:
+  default:
+    name: rabbitmq_go_net
