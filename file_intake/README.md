@@ -18,3 +18,5 @@ and
 ```
 docker exec -it minio mc event add local/wru-bucket arn:minio:sqs::PRIMARY:amqp --event put
 ```
+
+Then you can see the [MinIO UI](http://localhost:9001) and [RabbitMQ UI](http://localhost:15672).
