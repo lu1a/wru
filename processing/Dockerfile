@@ -14,7 +14,7 @@ RUN apt-get install -y \
     gcc \
     python3-tk \
     ffmpeg \
-    libopenblas-dev \ 
+    libopenblas-dev \
     liblapack-dev
 
 # Install dlib
@@ -25,7 +25,7 @@ RUN git clone https://github.com/davisking/dlib.git && \
     cmake .. && \
     cmake --build . && \
     cd .. && \
-    python3 setup.py install 
+    python3 setup.py install
 
 WORKDIR /app
 
