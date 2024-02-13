@@ -9,7 +9,4 @@ services:
       - .env
     volumes:
       - .:/app
-
-networks:
-  default:
-    name: procesing-network
+    network_mode: "host"
