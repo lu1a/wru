@@ -2,6 +2,8 @@ use std::{path::{Path, PathBuf}, time::Duration};
 
 use futures::executor;
 
+use gethostname::gethostname;
+
 use minio::s3::args::{BucketExistsArgs, MakeBucketArgs, UploadObjectArgs};
 use minio::s3::client::Client;
 // use minio::s3::creds::StaticProvider;
@@ -16,6 +18,8 @@ const DEFAULT_OBJSTO_BUCKET_NAME: &str = "wru-bucket";
 
 #[tokio::main]
 async fn main() {
+    let hostname = gethostname();
+
     // set up debouncer
     let (tx, rx) = std::sync::mpsc::channel();
 
@@ -50,7 +54,7 @@ async fn main() {
                     event.paths.iter().for_each(|path| {
                         if is_an_image(path) {
                             // TODO: don't explode if MinIO server is down
-                            let _ = executor::block_on(upload_object(&client, bucket_name, path));
+                            let _ = executor::block_on(upload_object(&client, bucket_name, path, hostname.to_str().unwrap_or_default()));
                         }
                     });
                 }
@@ -60,9 +64,10 @@ async fn main() {
     }
 }
 
-async fn upload_object(client: &Client, bucket_name: &str, path_buf: &PathBuf) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+async fn upload_object(client: &Client, bucket_name: &str, path_buf: &PathBuf, hostname: &str) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
     let path_as_str = path_buf.to_str().unwrap_or_default();
-    let file_name_in_bucket = path_as_str;
+    let only_file_name = path_buf.file_name().unwrap_or_default().to_str().unwrap_or_default();
+    let file_name_in_bucket = format!("{hostname}/{only_file_name}");
     // Check if bucket exists or not
     let exists = client
         .bucket_exists(&BucketExistsArgs::new(&bucket_name).unwrap())
@@ -81,7 +86,7 @@ async fn upload_object(client: &Client, bucket_name: &str, path_buf: &PathBuf) -
         .upload_object(
             &mut UploadObjectArgs::new(
                 &bucket_name,
-                file_name_in_bucket,
+                file_name_in_bucket.as_str(),
                 path_as_str,
             )
             .unwrap(),
