@@ -1,4 +1,7 @@
-use std::{path::{Path, PathBuf}, time::Duration};
+use std::{
+    path::{Path, PathBuf},
+    time::Duration,
+};
 
 use futures::executor;
 
@@ -25,10 +28,15 @@ async fn main() {
 
     // no specific tickrate, max debounce time 1 second
     let mut debouncer = new_debouncer(Duration::from_secs(1), None, tx).unwrap();
-    debouncer.watcher().watch(Path::new("."), RecursiveMode::Recursive).unwrap();
+    debouncer
+        .watcher()
+        .watch(Path::new("."), RecursiveMode::Recursive)
+        .unwrap();
 
     // set up minio conn
-    let base_url = DEFAULT_OBJSTO_CLIENT_NAME.parse::<BaseUrl>().unwrap_or_default();
+    let base_url = DEFAULT_OBJSTO_CLIENT_NAME
+        .parse::<BaseUrl>()
+        .unwrap_or_default();
 
     // TODO: get variables from args, incl. creds
 
@@ -37,13 +45,7 @@ async fn main() {
     //     "zuf+tfteSlswRu7BJ86wekitnifILbZam1KYY3TG",
     //     None,
     // );
-    let client = Client::new(
-        base_url.clone(),
-        None,
-        None,
-        None,
-    )
-    .unwrap();
+    let client = Client::new(base_url.clone(), None, None, None).unwrap();
 
     let bucket_name = DEFAULT_OBJSTO_BUCKET_NAME;
 
@@ -54,7 +56,12 @@ async fn main() {
                     event.paths.iter().for_each(|path| {
                         if is_an_image(path) {
                             // TODO: don't explode if MinIO server is down
-                            let _ = executor::block_on(upload_object(&client, bucket_name, path, hostname.to_str().unwrap_or_default()));
+                            let _ = executor::block_on(upload_object(
+                                &client,
+                                bucket_name,
+                                path,
+                                hostname.to_str().unwrap_or_default(),
+                            ));
                         }
                     });
                 }
@@ -64,9 +71,18 @@ async fn main() {
     }
 }
 
-async fn upload_object(client: &Client, bucket_name: &str, path_buf: &PathBuf, hostname: &str) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+async fn upload_object(
+    client: &Client,
+    bucket_name: &str,
+    path_buf: &PathBuf,
+    hostname: &str,
+) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
     let path_as_str = path_buf.to_str().unwrap_or_default();
-    let only_file_name = path_buf.file_name().unwrap_or_default().to_str().unwrap_or_default();
+    let only_file_name = path_buf
+        .file_name()
+        .unwrap_or_default()
+        .to_str()
+        .unwrap_or_default();
     let file_name_in_bucket = format!("{hostname}/{only_file_name}");
     // Check if bucket exists or not
     let exists = client
@@ -84,21 +100,23 @@ async fn upload_object(client: &Client, bucket_name: &str, path_buf: &PathBuf, h
 
     client
         .upload_object(
-            &mut UploadObjectArgs::new(
-                &bucket_name,
-                file_name_in_bucket.as_str(),
-                path_as_str,
-            )
-            .unwrap(),
+            &mut UploadObjectArgs::new(&bucket_name, file_name_in_bucket.as_str(), path_as_str)
+                .unwrap(),
         )
         .await
         .unwrap();
 
-    println!("{path_as_str} is successfully uploaded as object {file_name_in_bucket} to {bucket_name}.");
+    println!(
+        "{path_as_str} is successfully uploaded as object {file_name_in_bucket} to {bucket_name}."
+    );
     Ok(())
 }
 
 fn is_an_image(path: &PathBuf) -> bool {
-    let extension = path.extension().unwrap_or_default().to_str().unwrap_or_default();
-    return IMAGE_EXTENSIONS.contains(&extension)
+    let extension = path
+        .extension()
+        .unwrap_or_default()
+        .to_str()
+        .unwrap_or_default();
+    return IMAGE_EXTENSIONS.contains(&extension);
 }
