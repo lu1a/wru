@@ -15,4 +15,4 @@ Still TODO:
 - **field_scout** should be able to operate in a Meshtastic-only mode. *(Large)*
 - **processing** must perform object, person, and animal recognition, not just facial. *(Medium)*
 - **processing** must save results to a DB. *(Medium)*
-- **result** must be built the first place. *(Medium)*
+- **result** must be built in the first place. *(Medium)*
