@@ -9,7 +9,7 @@
   outputs = { self, nixpkgs, utils }: (utils.lib.eachSystem ["aarch64-darwin" ] (system: rec {
 
     packages = {
-      pythonEnv = nixpkgs.legacyPackages.${system}.python3.withPackages(ps: with ps; [ numpy pandas ]);
+      pythonEnv = nixpkgs.legacyPackages.${system}.python3.withPackages(ps: with ps; [ face_recognition pika requests ]);
     };
 
     defaultPackage = packages.pythonEnv; # If you want to juist build the environment
