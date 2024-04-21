@@ -22,6 +22,7 @@ Then specify the relevant variables inside the .env
 Then run
 
 ```
+nix develop
 python main.py
 ```
 

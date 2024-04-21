@@ -1,18 +1,29 @@
 {
-  description = "My flake";
+  inputs.nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
+  inputs.poetry2nix.url = "github:nix-community/poetry2nix";
 
-  inputs = {
-    nixpkgs.url = "github:NixOS/nixpkgs?ref=nixpkgs-unstable";
-    utils.url = "github:numtide/flake-utils";
-  };
+  outputs = { self, nixpkgs, poetry2nix }:
+    let
+      supportedSystems = [ "x86_64-linux" "x86_64-darwin" "aarch64-linux" "aarch64-darwin" ];
+      forAllSystems = nixpkgs.lib.genAttrs supportedSystems;
+      pkgs = forAllSystems (system: nixpkgs.legacyPackages.${system});
+    in
+    {
+      packages = forAllSystems (system: let
+        inherit (poetry2nix.lib.mkPoetry2Nix { pkgs = pkgs.${system}; }) mkPoetryApplication;
+      in {
+        default = mkPoetryApplication { projectDir = self; };
+      });
 
-  outputs = { self, nixpkgs, utils }: (utils.lib.eachSystem ["aarch64-darwin" ] (system: rec {
-
-    packages = {
-      pythonEnv = nixpkgs.legacyPackages.${system}.python3.withPackages(ps: with ps; [ face_recognition pika requests ]);
+      devShells = forAllSystems (system: let
+        inherit (poetry2nix.lib.mkPoetry2Nix { pkgs = pkgs.${system}; }) mkPoetryEnv;
+      in {
+        default = pkgs.${system}.mkShellNoCC {
+          packages = with pkgs.${system}; [
+            (mkPoetryEnv { projectDir = self; })
+            poetry
+          ];
+        };
+      });
     };
-
-    defaultPackage = packages.pythonEnv; # If we would want to just build the environment
-    devShell = packages.pythonEnv.env; # We need .env in order to use `nix develop`
-  }));
 }
