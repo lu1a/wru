@@ -12,7 +12,7 @@
       pythonEnv = nixpkgs.legacyPackages.${system}.python3.withPackages(ps: with ps; [ face_recognition pika requests ]);
     };
 
-    defaultPackage = packages.pythonEnv; # If you want to juist build the environment
+    defaultPackage = packages.pythonEnv; # If we would want to just build the environment
     devShell = packages.pythonEnv.env; # We need .env in order to use `nix develop`
   }));
 }
